@@ -1,0 +1,25 @@
+{
+  "name": "suono",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hawtim/suono.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hawtim/suono/issues"
+  },
+  "homepage": "https://github.com/hawtim/suono#readme",
+  "dependencies": {
+    "rollup": "^2.29.0"
+  }
+}

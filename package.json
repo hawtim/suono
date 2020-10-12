@@ -3,11 +3,18 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
+  "types": "types/index.d.ts",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prebuild": "del-cli dist",
+    "esm": "tsc --module esnext && cpy dist/index.js dist --rename index.esm.js",
+    "cjs": "tsc --module commonjs",
+    "build": "npm run esm && npm run cjs",
+    "test": "xo && nyc ava",
+    "prepublishOnly": "npm run build",
+    "dev": "npm run build --watch"
   },
   "repository": {
     "type": "git",
@@ -20,6 +27,7 @@
   },
   "homepage": "https://github.com/hawtim/suono#readme",
   "dependencies": {
-    "rollup": "^2.29.0"
+    "cpy-cli": "^3.1.1",
+    "del-cli": "^3.0.1"
   }
 }

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <button id="play">play</button>
+  <button id="pause">pause</button>
+  <button id="prev">prev</button>
+  <button id="next">next</button>
+  <button id="seek">seek + 3s</button>
+  <span id="currentMode">current mode: </span>
+  <button id="mode">change mode: order</button>
+
+  <script type="module">
+    import { Suono, SingleTonSuono } from '../dist/index.esm.js'
+    // 测试单例模式
+    window.SingleTonSuono = SingleTonSuono
+    var suono = new SingleTonSuono({
+      mode: 'random'
+    })
+    var suono1 = new SingleTonSuono()
+    console.log('suono1 === suono', suono1 === suono)
+    window.suono = suono
+    // console.log(suono)
+    suono.init({
+      name: 'wave',
+      src: 'https://hawtim.com/wave.mp3'
+    })
+    document.getElementById('play').onclick = function() {
+      suono.play()
+    }
+    document.getElementById('pause').onclick = function() {
+      suono.pause()
+    }
+    document.getElementById('prev').onclick = function() {
+      suono.prev()
+    }
+    document.getElementById('next').onclick = function() {
+      suono.next()
+    }
+    document.getElementById('seek').onclick = function() {
+      let currentTime = suono.getCurrentTime()
+      console.log(currentTime)
+      currentTime += 3
+      suono.seek(currentTime)
+      console.log(suono.getCurrentTime())
+    }
+    document.getElementById('mode').onclick = function() {
+      console.log('切换模式', )
+    }
+    // console.log(suono.getName())
+    // console.log(suono.getSrc())
+    // console.log(suono.getCurrentTime())
+
+    suono.eventBridge.listen('play', function(instance) {
+      // console.log('===========', instance)
+    })
+    // test the update list
+    suono.updateList([
+      {
+        name: 'rain',
+        src: 'https://hawtim.com/rain.mp3'
+      },
+      {
+        // not exist, cause error
+        name: 'windy',
+        src: 'https://hawtim.com/windy.mp3'
+      },
+      {
+        name: 'Santa Monica Dream',
+        src: 'https://hawtim.com/smd.mp3'
+      }
+    ])
+    console.log(suono.getList())
+    // Also you can add custom methods in suono's prototype
+    // DOMException: play() failed because the user didn't interact with the document first. https://goo.gl/xX8pDD
+    // suono.play()
+
+  </script>
+</body>
+</html>

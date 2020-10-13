@@ -114,7 +114,9 @@ class SuonoEvent {
   }
   remove(key: string, callback: () => void) {
     const callbacks = this.clientList[key]
-    if (!callbacks) return false
+    if (!callbacks) {
+      return false
+    }
     if (!callback) {
       // Cancel all subscribe functions if without specific callback
       callbacks && (callbacks.length = 0)
@@ -158,7 +160,7 @@ class Suono {
     this.suonoEvent = new SuonoEvent()
   }
   // Initialization
-  init({ src, name } : ListItem) {
+  init({ src, name }: ListItem) {
     if (!src) {
       throw new Error('Invalid audio source')
     }
@@ -185,8 +187,8 @@ class Suono {
     this.sound.load()
     this.updateDuration(this.sound.duration)
   }
-  play() {
-    this.sound.play()
+  async play() {
+    await this.sound.play()
   }
   pause() {
     this.sound.pause()
@@ -212,7 +214,7 @@ class Suono {
   // Handle the play mode
   prev() {
     // No list no behavior
-    if (!this.playList.length) return
+    if (this.playList.length === 0) return
     this.pause()
     if (this.currentIndex === 0) {
       this.currentIndex = this.playList.length - 1
@@ -223,7 +225,7 @@ class Suono {
 
   }
   next() {
-    if (!this.playList.length) return
+    if (this.playList.length === 0) return
     this.pause()
     if (this.currentIndex === this.playList.length - 1) {
       this.currentIndex = 0

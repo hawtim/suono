@@ -5,7 +5,7 @@ interface Suono {
     status: boolean;
     loading: boolean;
     controls: boolean;
-    playList: Array<ListItem>;
+    playList: ListItem[];
     currentIndex: number;
     mode: string;
     playType: PlayType;
@@ -14,29 +14,31 @@ interface Suono {
     suonoEvent: SuonoEvent;
 }
 interface ListItem {
+    [property: string]: any;
     src: string;
     name: string;
-    [property: string]: any;
 }
 interface PlayType {
-    order: Function;
-    singleLoop: Function;
-    random: Function;
-    listLoop: Function;
+    [playType: string]: () => void;
+    order: () => void;
+    singleLoop: () => void;
+    random: () => void;
+    listLoop: () => void;
 }
 interface Options {
-    autoSkip: boolean;
-    mode: string;
-    volume: number;
+    autoSkip?: boolean;
+    mode?: string;
+    volume?: number;
+    [property: string]: any;
 }
 interface SuonoEvent {
-    clientList: object;
+    clientList: Record<string, any>;
 }
 declare class SuonoEvent {
     constructor();
-    listen(key: string, callback: Function): void;
+    listen(key: string, callback: () => void): void;
     trigger(key: string, ...rest: any): boolean;
-    remove(key: string, callback: Function): boolean;
+    remove(key: string, callback: () => void): boolean;
 }
 declare class Suono {
     constructor(options?: Options, playList?: ListItem[]);
@@ -65,7 +67,7 @@ declare class Suono {
     updateMode(mode: string): void;
     updateList(list: ListItem[]): void;
     handleEvent(): void;
-    handleLoadError({ code, message }: MediaError): void;
+    handleLoadError({ code }: MediaError): void;
 }
-declare let SingleTonSuono: () => Suono;
+declare const SingleTonSuono: (rest_0: Options, rest_1: ListItem[]) => Suono;
 export { Suono, SingleTonSuono };

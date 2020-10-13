@@ -1,14 +1,12 @@
 interface Suono {
   sound: HTMLAudioElement
   name: string
-  // currentTime: number
   duration: number
   status: boolean
   loading: boolean
   controls: boolean
-  playList: Array<ListItem>
+  playList: ListItem[]
   currentIndex: number
-  // raf: number
   mode: string
   playType: PlayType
   autoSkip: boolean
@@ -17,43 +15,42 @@ interface Suono {
 }
 
 interface ListItem {
+  [property: string]: any
   src: string
   name: string
-  // Allow any property
-  [property: string]: any;
 }
 
 interface PlayType {
-  order: Function
-  singleLoop: Function
-  random: Function
-  listLoop: Function
-  [playType: string]: Function;
-
+  [playType: string]: () => void
+  order: () => void
+  singleLoop: () => void
+  random: () => void
+  listLoop: () => void
 }
 
 interface Options {
-  autoSkip: boolean
-  mode: string
-  volume: number
+  autoSkip?: boolean
+  mode?: string
+  volume?: number
+  [property: string]: any
 }
 
 interface SuonoEvent {
-  clientList: object
+  clientList: Record<string, any>
 }
 
 // Proxy for singleton
-function commonProxySingleton(funClass: any) {
+function commonProxySingleton(FunClass: new (options: Options, playList?: ListItem[]) => Suono) {
   let instance: Suono
-  return function getInstance() {
+  return (...rest: [Options, ListItem[]]) => {
     if (!instance) {
-      instance = new funClass(arguments)
+      instance = new FunClass(...rest)
     }
     return instance
   }
 }
 
-function randomNumBoth(min: number, max: number): number {
+function randomNumberBoth(min: number, max: number): number {
   const range = max - min
   const random = Math.random()
   const num = min + Math.round(random * range)
@@ -90,10 +87,10 @@ enum EventMap {
 }
 
 const ErrMap = {
-  '1': 'MEDIA_ERR_ABORTED',
-  '2': 'MEDIA_ERR_NETWORK',
-  '3': 'MEDIA_ERR_DECODE',
-  '4': 'MEDIA_ERR_SRC_NOT_SUPPORTED'
+  1: 'MEDIA_ERR_ABORTED',
+  2: 'MEDIA_ERR_NETWORK',
+  3: 'MEDIA_ERR_DECODE',
+  4: 'MEDIA_ERR_SRC_NOT_SUPPORTED'
 }
 
 // Implement a publish and subscribe event bridge
@@ -101,7 +98,7 @@ class SuonoEvent {
   constructor() {
     this.clientList = {}
   }
-  listen(key: string, callback: Function) {
+  listen(key: string, callback: () => void) {
     if (!this.clientList[key]) {
       this.clientList[key] = []
     }
@@ -111,11 +108,11 @@ class SuonoEvent {
     const callbacks = this.clientList[key]
     if (!callbacks || callbacks.length === 0) return false
     // Just use for loop to avoid async function in loop
-    for (var i = 0, callback; callback = callbacks[i++];) {
+    for (let i = 0, callback; callback = callbacks[i++];) {
       callback.apply(this, rest)
     }
   }
-  remove(key: string, callback: Function) {
+  remove(key: string, callback: () => void) {
     const callbacks = this.clientList[key]
     if (!callbacks) return false
     if (!callback) {
@@ -135,7 +132,7 @@ class SuonoEvent {
 
 class Suono {
   // Constructor for different params
-  constructor(options?: Options, playList?: ListItem[]) {
+  constructor(options: Options = {}, playList?: ListItem[]) {
     this.duration = 0
     this.status = false
     this.name = ''
@@ -162,7 +159,9 @@ class Suono {
   }
   // Initialization
   init({ src, name } : ListItem) {
-    if (!src) throw new Error('Invalid audio source')
+    if (!src) {
+      throw new Error('Invalid audio source')
+    }
     this.name = name || 'unknown'
     this.playList.push({
       src, name
@@ -188,12 +187,10 @@ class Suono {
   }
   play() {
     this.sound.play()
-    // this.raf = requestAnimationFrame(this.updateCurrentTime.bind(this))
   }
   pause() {
     this.sound.pause()
     this.updateStatus(false)
-    // cancelAnimationFrame(this.raf)
   }
   seek(target: number) {
     if (target >= this.duration) {
@@ -249,7 +246,7 @@ class Suono {
     this.switch(this.playList[this.currentIndex])
   }
   random() {
-    const index = randomNumBoth(0, this.playList.length - 1)
+    const index = randomNumberBoth(0, this.playList.length - 1)
     this.currentIndex = index
     this.switch(this.playList[index])
   }
@@ -288,13 +285,6 @@ class Suono {
   updateStatus(status: boolean) {
     this.status = status
   }
-  // updateCurrentTime() {
-  //   if (!this.sound) {
-  //     this.currentTime = 0
-  //     return
-  //   }
-  //   this.currentTime = this.sound.currentTime
-  // }
   updateMode(mode: string) {
     this.mode = mode
   }
@@ -363,6 +353,6 @@ class Suono {
 }
 
 // A singleton instance for specifies.
-let SingleTonSuono = commonProxySingleton(Suono)
+const SingleTonSuono = commonProxySingleton(Suono)
 
 export { Suono, SingleTonSuono }

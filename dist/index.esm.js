@@ -1,13 +1,24 @@
-function commonProxySingleton(funClass) {
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
+function commonProxySingleton(FunClass) {
     var instance;
-    return function getInstance() {
+    return function () {
+        var rest = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            rest[_i] = arguments[_i];
+        }
         if (!instance) {
-            instance = new funClass(arguments);
+            instance = new (FunClass.bind.apply(FunClass, __spreadArrays([void 0], rest)))();
         }
         return instance;
     };
 }
-function randomNumBoth(min, max) {
+function randomNumberBoth(min, max) {
     var range = max - min;
     var random = Math.random();
     var num = min + Math.round(random * range);
@@ -43,10 +54,10 @@ var EventMap;
     EventMap[EventMap["waiting"] = 25] = "waiting";
 })(EventMap || (EventMap = {}));
 var ErrMap = {
-    '1': 'MEDIA_ERR_ABORTED',
-    '2': 'MEDIA_ERR_NETWORK',
-    '3': 'MEDIA_ERR_DECODE',
-    '4': 'MEDIA_ERR_SRC_NOT_SUPPORTED'
+    1: 'MEDIA_ERR_ABORTED',
+    2: 'MEDIA_ERR_NETWORK',
+    3: 'MEDIA_ERR_DECODE',
+    4: 'MEDIA_ERR_SRC_NOT_SUPPORTED'
 };
 var SuonoEvent = (function () {
     function SuonoEvent() {
@@ -66,7 +77,7 @@ var SuonoEvent = (function () {
         var callbacks = this.clientList[key];
         if (!callbacks || callbacks.length === 0)
             return false;
-        for (var i = 0, callback; callback = callbacks[i++];) {
+        for (var i = 0, callback = void 0; callback = callbacks[i++];) {
             callback.apply(this, rest);
         }
     };
@@ -78,10 +89,10 @@ var SuonoEvent = (function () {
             callbacks && (callbacks.length = 0);
         }
         else {
-            for (var length = callbacks.length - 1; length >= 0; length--) {
-                var _callback = callbacks[length];
+            for (var length_1 = callbacks.length - 1; length_1 >= 0; length_1--) {
+                var _callback = callbacks[length_1];
                 if (_callback === callback) {
-                    callbacks.splice(length, 1);
+                    callbacks.splice(length_1, 1);
                 }
             }
         }
@@ -90,6 +101,7 @@ var SuonoEvent = (function () {
 }());
 var Suono = (function () {
     function Suono(options, playList) {
+        if (options === void 0) { options = {}; }
         this.duration = 0;
         this.status = false;
         this.name = '';
@@ -99,7 +111,7 @@ var Suono = (function () {
         this.volume = options.volume || 1;
         this.playList = playList || [];
         this.currentIndex = 0;
-        this.autoSkip = true;
+        this.autoSkip = options.autoSkip || true;
         this.mode = options.mode || 'order';
         this.playType = {
             order: this.order,
@@ -111,8 +123,9 @@ var Suono = (function () {
     }
     Suono.prototype.init = function (_a) {
         var src = _a.src, name = _a.name;
-        if (!src)
+        if (!src) {
             throw new Error('Invalid audio source');
+        }
         this.name = name || 'unknown';
         this.playList.push({
             src: src, name: name
@@ -195,7 +208,7 @@ var Suono = (function () {
         this.switch(this.playList[this.currentIndex]);
     };
     Suono.prototype.random = function () {
-        var index = randomNumBoth(0, this.playList.length - 1);
+        var index = randomNumberBoth(0, this.playList.length - 1);
         this.currentIndex = index;
         this.switch(this.playList[index]);
     };
@@ -287,8 +300,8 @@ var Suono = (function () {
         });
     };
     Suono.prototype.handleLoadError = function (_a) {
-        var code = _a.code, message = _a.message;
-        var suffix = ", Please refer to https://developer.mozilla.org/en-US/docs/Web/API/MediaError";
+        var code = _a.code;
+        var suffix = ', Please refer to https://developer.mozilla.org/en-US/docs/Web/API/MediaError';
         throw new Error("" + ErrMap[code] + suffix);
     };
     return Suono;

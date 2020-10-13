@@ -2,10 +2,9 @@
 
 Suono
 
-## Feature
-
 ![TypeScript](https://img.shields.io/badge/-TypeScript-007ACC?style=flat-square&logo=typescript)
-![VSCode](https://img.shields.io/badge/-VSCode-007ACC?style=flat-square&logo=visual-studio-code&logoColor=white)
+
+## Feature
 
 - 支持单例模式，全局实例共享
 - 支持发布订阅模式，提供了所有的音视频事件的回调钩子，基于 MDN 的事件列表

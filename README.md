@@ -1,7 +1,67 @@
 ## Suono
 
+Suono
+
 ## Feature
+
+![TypeScript](https://img.shields.io/badge/-TypeScript-007ACC?style=flat-square&logo=typescript)
+![VSCode](https://img.shields.io/badge/-VSCode-007ACC?style=flat-square&logo=visual-studio-code&logoColor=white)
+
+- 支持单例模式，全局实例共享
+- 支持发布订阅模式，提供了所有的音视频事件的回调钩子，基于 MDN 的事件列表
+- 内置了四种播放模式的实现，顺序播放、列表循环、单曲循环、随机播放
+- 完善的错误提示
+- 支持自定义播放模式
+
+## Example
+
+### 单例模式
+
+用 new 的方式调用始终拿到同一个实例。
+```html
+<script type="module">
+  import { SingleTonSuono } from '../dist/index.esm.js'
+  var suono = new SingleTonSuono({
+    mode: 'random'
+  })
+  var suono1 = new SingleTonSuono()
+  console.log(suono1 === suono) // true
+</script>
+```
+
+### 非单例模式
+
+```html
+<script type="module">
+  import { Suono } from '../dist/index.esm.js'
+  var suono = new Suono({
+    mode: 'random' // order, singleLoop, random, listLoop
+  })
+</script>
+```
+
+## Develop
+
+```json
+"scripts": {
+  "prebuild": "del-cli dist",
+  "esm": "tsc --module esnext && cpy dist/index.js dist --rename index.esm.js",
+  "cjs": "tsc --module commonjs",
+  "build": "npm run esm && npm run cjs",
+  "test": "xo && nyc ava",
+  "dev": "npm run build --watch"
+}
+```
+
+## Test
+
+npm run test
+
 
 ## ScreenShot
 
+
+
 ## License
+
+ISC

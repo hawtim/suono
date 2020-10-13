@@ -28,6 +28,8 @@ interface PlayType {
   singleLoop: Function
   random: Function
   listLoop: Function
+  [playType: string]: Function;
+
 }
 
 interface Options {
@@ -120,7 +122,7 @@ class SuonoEvent {
       // Cancel all subscribe functions if without specific callback
       callbacks && (callbacks.length = 0)
     } else {
-      for (var length = callbacks.length - 1; length >=0; length--) {
+      for (let length = callbacks.length - 1; length >=0; length--) {
         const _callback = callbacks[length]
         if (_callback === callback) {
           // Delete callback
@@ -146,7 +148,7 @@ class Suono {
     this.playList = playList || []
     this.currentIndex = 0
     // Invalid file or unsupported file will skip
-    this.autoSkip = true
+    this.autoSkip = options.autoSkip || true
     // order random singleLoop listLoop, order mode is default option
     this.mode = options.mode || 'order'
     this.playType = {
@@ -316,7 +318,6 @@ class Suono {
     })
     // Custom callback for specific event
     this.suonoEvent.listen('abort', () => {
-      // error.code === 1
       this.handleLoadError(this.sound.error)
     })
     this.suonoEvent.listen('canplay', () => {
@@ -355,8 +356,8 @@ class Suono {
       this.updateLoading(true)
     })
   }
-  handleLoadError({ code, message }: MediaError) {
-    const suffix = `, Please refer to https://developer.mozilla.org/en-US/docs/Web/API/MediaError`
+  handleLoadError({ code }: MediaError) {
+    const suffix = ', Please refer to https://developer.mozilla.org/en-US/docs/Web/API/MediaError'
     throw new Error(`${ErrMap[code]}${suffix}`)
   }
 }

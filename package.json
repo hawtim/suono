@@ -27,7 +27,10 @@
   },
   "homepage": "https://github.com/hawtim/suono#readme",
   "dependencies": {
+    "ava": "^3.13.0",
     "cpy-cli": "^3.1.1",
-    "del-cli": "^3.0.1"
+    "del-cli": "^3.0.1",
+    "nyc": "^15.1.0",
+    "xo": "^0.33.1"
   }
 }

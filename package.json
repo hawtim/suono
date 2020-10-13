@@ -12,9 +12,10 @@
     "esm": "tsc --module esnext && cpy dist/index.js dist --rename index.esm.js",
     "cjs": "tsc --module commonjs",
     "build": "npm run esm && npm run cjs",
-    "test": "xo && nyc ava",
+    "test": "ava",
     "prepublishOnly": "npm run build",
-    "dev": "npm run build --watch"
+    "dev": "npm run build --watch",
+    "lint": "xo --fix"
   },
   "repository": {
     "type": "git",
@@ -30,7 +31,8 @@
     "ava": "^3.13.0",
     "cpy-cli": "^3.1.1",
     "del-cli": "^3.0.1",
-    "nyc": "^15.1.0",
+    "jsdom": "^16.4.0",
+    "sinon": "^9.2.0",
     "xo": "^0.33.1"
   }
 }

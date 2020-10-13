@@ -26,10 +26,10 @@ interface PlayType {
     listLoop: () => void;
 }
 interface Options {
+    [property: string]: any;
     autoSkip?: boolean;
     mode?: string;
     volume?: number;
-    [property: string]: any;
 }
 interface SuonoEvent {
     clientList: Record<string, any>;
@@ -47,7 +47,7 @@ declare class Suono {
     play(): void;
     pause(): void;
     seek(target: number): void;
-    skipTo(index: number): void;
+    skipTo(listItem: ListItem): void;
     canplay(): void;
     prev(): void;
     next(): void;

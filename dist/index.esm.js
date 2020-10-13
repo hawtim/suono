@@ -21,8 +21,8 @@ function commonProxySingleton(FunClass) {
 function randomNumberBoth(min, max) {
     var range = max - min;
     var random = Math.random();
-    var num = min + Math.round(random * range);
-    return num;
+    var number = min + Math.round(random * range);
+    return number;
 }
 var EventMap;
 (function (EventMap) {
@@ -53,11 +53,24 @@ var EventMap;
     EventMap[EventMap["volumechange"] = 24] = "volumechange";
     EventMap[EventMap["waiting"] = 25] = "waiting";
 })(EventMap || (EventMap = {}));
-var ErrMap = {
+var LoadErrMap = {
     1: 'MEDIA_ERR_ABORTED',
     2: 'MEDIA_ERR_NETWORK',
     3: 'MEDIA_ERR_DECODE',
     4: 'MEDIA_ERR_SRC_NOT_SUPPORTED'
+};
+var NetworkErrMap = {
+    0: 'NETWORK_EMPTY',
+    1: 'NETWORK_IDLE',
+    2: 'NETWORK_LOADING',
+    3: 'NETWORK_NO_SOURCE'
+};
+var ReadyStateMap = {
+    0: 'HAVE_NOTHING',
+    1: 'HAVE_METADATA',
+    2: 'HAVE_CURRENT_DATA',
+    3: 'HAVE_FUTURE_DATA',
+    4: 'HAVE_ENOUGH_DATA'
 };
 var SuonoEvent = (function () {
     function SuonoEvent() {
@@ -75,25 +88,29 @@ var SuonoEvent = (function () {
             rest[_i - 1] = arguments[_i];
         }
         var callbacks = this.clientList[key];
-        if (!callbacks || callbacks.length === 0)
+        if (!callbacks || callbacks.length === 0) {
             return false;
-        for (var i = 0, callback = void 0; callback = callbacks[i++];) {
+        }
+        for (var _a = 0, callbacks_1 = callbacks; _a < callbacks_1.length; _a++) {
+            var callback = callbacks_1[_a];
             callback.apply(this, rest);
         }
     };
     SuonoEvent.prototype.remove = function (key, callback) {
         var callbacks = this.clientList[key];
-        if (!callbacks)
+        if (!callbacks) {
             return false;
-        if (!callback) {
-            callbacks && (callbacks.length = 0);
         }
-        else {
-            for (var length_1 = callbacks.length - 1; length_1 >= 0; length_1--) {
-                var _callback = callbacks[length_1];
-                if (_callback === callback) {
-                    callbacks.splice(length_1, 1);
-                }
+        if (!callback) {
+            if (callbacks) {
+                callbacks.length = 0;
+            }
+            return;
+        }
+        for (var length_1 = callbacks.length - 1; length_1 >= 0; length_1--) {
+            var _callback = callbacks[length_1];
+            if (_callback === callback) {
+                callbacks.splice(length_1, 1);
             }
         }
     };
@@ -142,10 +159,9 @@ var Suono = (function () {
     };
     Suono.prototype.load = function () {
         this.sound.load();
-        this.updateDuration(this.sound.duration);
     };
     Suono.prototype.play = function () {
-        this.sound.play();
+        void this.sound.play();
     };
     Suono.prototype.pause = function () {
         this.sound.pause();
@@ -159,7 +175,8 @@ var Suono = (function () {
             this.sound.currentTime = target;
         }
     };
-    Suono.prototype.skipTo = function (index) {
+    Suono.prototype.skipTo = function (listItem) {
+        var index = this.playList.findIndex(function (item) { return item === listItem; });
         this.pause();
         this.switch(this.playList[index]);
     };
@@ -169,8 +186,9 @@ var Suono = (function () {
         this.updateStatus(true);
     };
     Suono.prototype.prev = function () {
-        if (!this.playList.length)
+        if (this.playList.length === 0) {
             return;
+        }
         this.pause();
         if (this.currentIndex === 0) {
             this.currentIndex = this.playList.length - 1;
@@ -181,8 +199,9 @@ var Suono = (function () {
         this.switch(this.playList[this.currentIndex]);
     };
     Suono.prototype.next = function () {
-        if (!this.playList.length)
+        if (this.playList.length === 0) {
             return;
+        }
         this.pause();
         if (this.currentIndex === this.playList.length - 1) {
             this.currentIndex = 0;
@@ -197,11 +216,12 @@ var Suono = (function () {
         this.sound.src = src;
         this.name = name;
         this.load();
-        this.play();
+        void this.play();
     };
     Suono.prototype.order = function () {
-        if (this.currentIndex === this.playList.length - 1)
+        if (this.currentIndex === this.playList.length - 1) {
             return;
+        }
         this.next();
     };
     Suono.prototype.singleLoop = function () {
@@ -265,11 +285,11 @@ var Suono = (function () {
                 _this.suonoEvent.trigger(key, _this);
             });
         });
-        this.suonoEvent.listen('abort', function () {
-            _this.handleLoadError(_this.sound.error);
-        });
         this.suonoEvent.listen('canplay', function () {
             _this.canplay();
+        });
+        this.suonoEvent.listen('durationchange', function () {
+            _this.updateDuration(Math.round(_this.sound.duration));
         });
         this.suonoEvent.listen('pause', function () {
             _this.pause();
@@ -280,7 +300,13 @@ var Suono = (function () {
             _this.updateStatus(true);
         });
         this.suonoEvent.listen('playing', function () {
-            _this.updateLoading(false);
+            console.log("" + String(NetworkErrMap[_this.sound.networkState]));
+            if (_this.sound.networkState === 2) {
+                _this.updateLoading(true);
+            }
+            if (_this.sound.networkState === 3 || _this.sound.networkState === 4) {
+                _this.updateLoading(false);
+            }
         });
         this.suonoEvent.listen('ended', function () {
             _this.playType[_this.mode].call(_this);
@@ -302,7 +328,7 @@ var Suono = (function () {
     Suono.prototype.handleLoadError = function (_a) {
         var code = _a.code;
         var suffix = ', Please refer to https://developer.mozilla.org/en-US/docs/Web/API/MediaError';
-        throw new Error("" + ErrMap[code] + suffix);
+        throw new Error("" + String(LoadErrMap[code]) + suffix);
     };
     return Suono;
 }());

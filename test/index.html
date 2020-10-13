@@ -11,6 +11,8 @@
   <button id="prev">prev</button>
   <button id="next">next</button>
   <button id="seek">seek + 3s</button>
+  <button id="skipTo">skipTo</button>
+
   <span id="currentMode">current mode: </span>
   <button id="mode">change mode: order</button>
 
@@ -50,6 +52,9 @@
     }
     document.getElementById('mode').onclick = function() {
       console.log('切换模式', )
+    }
+    document.getElementById('skipTo').onclick = function() {
+      suono.skipTo(3)
     }
     // console.log(suono.getName())
     // console.log(suono.getSrc())

@@ -1,15 +1,13 @@
 ## Suono
 
-Suono
-
 ![TypeScript](https://img.shields.io/badge/-TypeScript-007ACC?style=flat-square&logo=typescript)
+[![XO code style](https://img.shields.io/badge/code_style-XO-5ed9c7.svg)](https://github.com/xojs/xo)
 
 ## Feature
 
 - 支持单例模式，全局实例共享
 - 支持发布订阅模式，提供了所有的音视频事件的回调钩子，基于 MDN 的事件列表
 - 内置了四种播放模式的实现，顺序播放、列表循环、单曲循环、随机播放
-- 完善的错误提示
 - 支持自定义播放模式
 
 ## Example
@@ -55,11 +53,6 @@ Suono
 ## Test
 
 npm run test
-
-
-## ScreenShot
-
-
 
 ## License
 

@@ -29,10 +29,10 @@ interface PlayType {
 }
 
 interface Options {
+  [property: string]: any
   autoSkip?: boolean
   mode?: string
   volume?: number
-  [property: string]: any
 }
 
 interface SuonoEvent {
@@ -53,15 +53,15 @@ function commonProxySingleton(FunClass: new (options: Options, playList?: ListIt
 function randomNumberBoth(min: number, max: number): number {
   const range = max - min
   const random = Math.random()
-  const num = min + Math.round(random * range)
-  return num
+  const number = min + Math.round(random * range)
+  return number
 }
 
 // All events about audio and video
 // https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events
 enum EventMap {
   abort,
-  canplay, canplaythrough, // firefox
+  canplay, canplaythrough, // Firefox
   durationchange,
   emptied,
   ended,
@@ -69,7 +69,7 @@ enum EventMap {
   error,
   loadeddata,
   loadedmetadata,
-  interruptbegin, interruptend, // firefox os
+  interruptbegin, interruptend, // Firefox os
   loadstart,
   mozaudioavailable,
   pause,
@@ -86,13 +86,27 @@ enum EventMap {
   waiting,
 }
 
-const ErrMap = {
+const LoadErrMap = {
   1: 'MEDIA_ERR_ABORTED',
   2: 'MEDIA_ERR_NETWORK',
   3: 'MEDIA_ERR_DECODE',
   4: 'MEDIA_ERR_SRC_NOT_SUPPORTED'
 }
-
+// https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/networkState
+const NetworkErrMap = {
+  0: 'NETWORK_EMPTY',
+  1: 'NETWORK_IDLE',
+  2: 'NETWORK_LOADING',
+  3: 'NETWORK_NO_SOURCE'
+}
+// https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/readyState
+const ReadyStateMap = {
+  0: 'HAVE_NOTHING',
+  1: 'HAVE_METADATA',
+  2: 'HAVE_CURRENT_DATA',
+  3: 'HAVE_FUTURE_DATA',
+  4: 'HAVE_ENOUGH_DATA'
+}
 // Implement a publish and subscribe event bridge
 class SuonoEvent {
   constructor() {
@@ -106,9 +120,11 @@ class SuonoEvent {
   }
   trigger(key: string, ...rest: any) {
     const callbacks = this.clientList[key]
-    if (!callbacks || callbacks.length === 0) return false
+    if (!callbacks || callbacks.length === 0) {
+      return false
+    }
     // Just use for loop to avoid async function in loop
-    for (let i = 0, callback; callback = callbacks[i++];) {
+    for (const callback of callbacks) {
       callback.apply(this, rest)
     }
   }
@@ -119,14 +135,16 @@ class SuonoEvent {
     }
     if (!callback) {
       // Cancel all subscribe functions if without specific callback
-      callbacks && (callbacks.length = 0)
-    } else {
-      for (let length = callbacks.length - 1; length >=0; length--) {
-        const _callback = callbacks[length]
-        if (_callback === callback) {
-          // Delete callback
-          callbacks.splice(length, 1)
-        }
+      if (callbacks) {
+        callbacks.length = 0
+      }
+      return
+    }
+    for (let length = callbacks.length - 1; length >= 0; length--) {
+      const _callback = callbacks[length]
+      if (_callback === callback) {
+        // Delete callback
+        callbacks.splice(length, 1)
       }
     }
   }
@@ -148,7 +166,7 @@ class Suono {
     this.currentIndex = 0
     // Invalid file or unsupported file will skip
     this.autoSkip = options.autoSkip || true
-    // order random singleLoop listLoop, order mode is default option
+    // Order random singleLoop listLoop, order mode is default option
     this.mode = options.mode || 'order'
     this.playType = {
       order: this.order,
@@ -185,10 +203,10 @@ class Suono {
   // Load the file
   load() {
     this.sound.load()
-    this.updateDuration(this.sound.duration)
   }
-  async play() {
-    await this.sound.play()
+  play() {
+    // Play method got a promise as return value, using void to handle it
+    void this.sound.play()
   }
   pause() {
     this.sound.pause()
@@ -201,8 +219,8 @@ class Suono {
       this.sound.currentTime = target
     }
   }
-  // TODO skipTo
-  skipTo(index: number) {
+  skipTo(listItem: ListItem) {
+    const index = this.playList.findIndex(item => item === listItem)
     this.pause()
     this.switch(this.playList[index])
   }
@@ -214,7 +232,9 @@ class Suono {
   // Handle the play mode
   prev() {
     // No list no behavior
-    if (this.playList.length === 0) return
+    if (this.playList.length === 0) {
+      return
+    }
     this.pause()
     if (this.currentIndex === 0) {
       this.currentIndex = this.playList.length - 1
@@ -222,10 +242,11 @@ class Suono {
       this.currentIndex -= 1
     }
     this.switch(this.playList[this.currentIndex])
-
   }
   next() {
-    if (this.playList.length === 0) return
+    if (this.playList.length === 0) {
+      return
+    }
     this.pause()
     if (this.currentIndex === this.playList.length - 1) {
       this.currentIndex = 0
@@ -238,10 +259,12 @@ class Suono {
     this.sound.src = src
     this.name = name
     this.load()
-    this.play()
+    void this.play()
   }
   order() {
-    if (this.currentIndex === this.playList.length - 1) return
+    if (this.currentIndex === this.playList.length - 1) {
+      return
+    }
     this.next()
   }
   singleLoop() {
@@ -260,7 +283,7 @@ class Suono {
     return this.name
   }
   getSrc(): string {
-    return this.sound.src
+    return this.sound.currentSrc || this.sound.src
   }
   getCurrentTime(): number {
     return this.sound.currentTime
@@ -309,11 +332,11 @@ class Suono {
       })
     })
     // Custom callback for specific event
-    this.suonoEvent.listen('abort', () => {
-      this.handleLoadError(this.sound.error)
-    })
     this.suonoEvent.listen('canplay', () => {
       this.canplay()
+    })
+    this.suonoEvent.listen('durationchange', () => {
+      this.updateDuration(Math.round(this.sound.duration))
     })
     this.suonoEvent.listen('pause', () => {
       this.pause()
@@ -322,10 +345,13 @@ class Suono {
       this.updateLoading(true)
       this.updateDuration(Math.round(this.sound.duration))
       this.updateStatus(true)
-      // Update the progress bar
-      // requestAnimationFrame(this.commit.bind(this, 'doctorLesson/STEP'))
     })
     this.suonoEvent.listen('playing', () => {
+      console.log(`${String(NetworkErrMap[this.sound.networkState])}`)
+      if (this.sound.networkState === 2) {
+        this.updateLoading(true)
+        return
+      }
       this.updateLoading(false)
     })
     this.suonoEvent.listen('ended', () => {
@@ -341,7 +367,6 @@ class Suono {
       }
     })
     this.suonoEvent.listen('suspend', () => {
-      // 持续播放中会进入挂起状态
       this.updateLoading(false)
     })
     this.suonoEvent.listen('waiting', () => {
@@ -350,7 +375,7 @@ class Suono {
   }
   handleLoadError({ code }: MediaError) {
     const suffix = ', Please refer to https://developer.mozilla.org/en-US/docs/Web/API/MediaError'
-    throw new Error(`${ErrMap[code]}${suffix}`)
+    throw new Error(`${String(LoadErrMap[code])}${suffix}`)
   }
 }
 

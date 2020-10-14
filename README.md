@@ -2,6 +2,7 @@
 
 ![TypeScript](https://img.shields.io/badge/-TypeScript-007ACC?style=flat-square&logo=typescript)
 [![XO code style](https://img.shields.io/badge/code_style-XO-5ed9c7.svg)](https://github.com/xojs/xo)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fhawtim%2Fsuono.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fhawtim%2Fsuono?ref=badge_shield)
 
 ## Feature
 
@@ -57,3 +58,5 @@ npm run test
 ## License
 
 ISC
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fhawtim%2Fsuono.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fhawtim%2Fsuono?ref=badge_large)

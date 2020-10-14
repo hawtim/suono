@@ -1,8 +1,12 @@
 interface Suono {
   sound: HTMLAudioElement
   name: string
+  src: string | string[]
   duration: number
-  status: boolean
+  autoplay: boolean
+  preload: string
+  loop: boolean
+  fallback: string
   loading: boolean
   controls: boolean
   playList: ListItem[]
@@ -11,12 +15,13 @@ interface Suono {
   playType: PlayType
   autoSkip: boolean
   volume: number
+  timestamp: number
   suonoEvent: SuonoEvent
 }
 
 interface ListItem {
   [property: string]: any
-  src: string
+  src: string | string[]
   name: string
 }
 
@@ -33,6 +38,9 @@ interface Options {
   autoSkip?: boolean
   mode?: string
   volume?: number
+  preload?: string
+  controls?: boolean
+  autoplay?: boolean
 }
 
 interface SuonoEvent {
@@ -61,7 +69,9 @@ function randomNumberBoth(min: number, max: number): number {
 // https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events
 enum EventMap {
   abort,
+  audioprocess,
   canplay, canplaythrough, // Firefox
+  complete,
   durationchange,
   emptied,
   ended,
@@ -106,6 +116,28 @@ const ReadyStateMap = {
   2: 'HAVE_CURRENT_DATA',
   3: 'HAVE_FUTURE_DATA',
   4: 'HAVE_ENOUGH_DATA'
+}
+
+enum PreloadMap {
+  none,
+  metadata,
+  auto
+}
+// https://github.com/rello/audioplayer/wiki/audio-files-and-mime-types
+const SourceTypeMap = {
+  "flac": ["audio/flac"],
+	"m3u": ["audio/mpegurl", "text/plain"],
+	"m3u8": ["audio/mpegurl", "text/plain"],
+	"m4a": ["audio/mp4"],
+	"m4b": ["audio/mp4"],
+	"mp3": ["audio/mpeg"],
+	"ogg": ["audio/ogg"],
+	"opus": ["audio/ogg"],
+	"pls": ["audio/x-scpls", "text/plain"],
+  "wav": ["audio/wav"],
+  "webm": ["audio/webm"],
+	"wma": ["audio/x-ms-wma"],
+	"xspf": ["application/xspf+xml", "text/plain"]
 }
 // Implement a publish and subscribe event bridge
 class SuonoEvent {
@@ -153,21 +185,37 @@ class SuonoEvent {
 class Suono {
   // Constructor for different params
   constructor(options: Options = {}, playList?: ListItem[]) {
+    const baseOptions = {
+      autoplay: false,
+      controls: false,
+      preload: 'metadata',
+      fallback: 'Your browser doesn\'t support HTML5 audio.',
+      autoSkip: true,
+      volume: 1,
+      mode: 'order'
+    }
+    const opt = Object.assign({}, baseOptions, options)
+    this.timestamp = +new Date
     this.duration = 0
-    this.status = false
+    this.loop = false
     this.name = ''
+    this.src = ''
     this.loading = false
+    this.fallback = opt.fallback
+    this.autoplay = opt.autoplay
+    // To avoid loading the whole file, preload the meta data.
+    this.preload = opt.preload
     // No controls by default
-    this.controls = false
+    this.controls = opt.controls
     this.sound = null
-    this.volume = options.volume || 1
+    this.volume = opt.volume
     // Control the play back and forth
     this.playList = playList || []
     this.currentIndex = 0
     // Invalid file or unsupported file will skip
-    this.autoSkip = options.autoSkip || true
+    this.autoSkip = opt.autoSkip
     // Order random singleLoop listLoop, order mode is default option
-    this.mode = options.mode || 'order'
+    this.mode = opt.mode
     this.playType = {
       order: this.order,
       singleLoop: this.singleLoop,
@@ -182,23 +230,51 @@ class Suono {
     if (!src) {
       throw new Error('Invalid audio source')
     }
-    this.name = name || 'unknown'
     this.playList.push({
       src, name
     })
-    // Create the audio element
     this.sound = document.createElement('audio')
-    // To avoid loading the whole file, preload the meta data.
-    this.sound.preload = 'metadata'
-    this.sound.controls = false
+    this.setId()
+    this.updatePreload(this.preload)
+    this.updateControls(this.controls)
     // Add events listener
     this.handleEvent()
-    if (!src) {
-      throw new Error('not found')
+    this.switch({
+      src, name
+    })
+  }
+  updateAudio(src: string | string[]) {
+    if (Array.isArray(src)) {
+      let fragment = document.createDocumentFragment()
+      src.forEach(item => {
+        const source = document.createElement('source')
+        const temp = item.split('.')
+        const ext = temp[temp.length - 1]
+        source.src = item
+        source.type = SourceTypeMap[ext] ? SourceTypeMap[ext][0] : ''
+        fragment.appendChild(source)
+      })
+      this.sound.appendChild(fragment)
+    } else {
+      this.sound.src = src
     }
-    this.sound.src = src
-    // Load the resource
-    this.load()
+    if (this.fallback) {
+      let fragment = document.createDocumentFragment()
+      const paragraph = document.createElement('p')
+      paragraph.innerText = this.fallback
+      this.sound.appendChild(fragment)
+    }
+  }
+  appendChild() {
+    document.body.appendChild(this.sound)
+  }
+  removeChild() {
+    document.body.removeChild(this.sound)
+  }
+  destroy() {
+    this.suonoEvent.trigger('beforeDeStroy', this)
+    this.pause()
+    this.sound = null
   }
   // Load the file
   load() {
@@ -210,7 +286,6 @@ class Suono {
   }
   pause() {
     this.sound.pause()
-    this.updateStatus(false)
   }
   seek(target: number) {
     if (target >= this.duration) {
@@ -226,8 +301,6 @@ class Suono {
   }
   canplay() {
     this.updateLoading(false)
-    this.updateDuration(Math.round(this.sound.duration))
-    this.updateStatus(true)
   }
   // Handle the play mode
   prev() {
@@ -235,7 +308,9 @@ class Suono {
     if (this.playList.length === 0) {
       return
     }
-    this.pause()
+    if (this.mode === 'random') {
+      return this.random()
+    }
     if (this.currentIndex === 0) {
       this.currentIndex = this.playList.length - 1
     } else {
@@ -247,7 +322,11 @@ class Suono {
     if (this.playList.length === 0) {
       return
     }
-    this.pause()
+    if (this.mode === 'random') {
+      return this.random()
+    }
+    this.currentIndex = this.getRandomIndex()
+    // this.pause()
     if (this.currentIndex === this.playList.length - 1) {
       this.currentIndex = 0
     } else {
@@ -256,8 +335,8 @@ class Suono {
     this.switch(this.playList[this.currentIndex])
   }
   switch({ name, src }: ListItem) {
-    this.sound.src = src
-    this.name = name
+    this.updateAudio(src)
+    this.name = name || 'unknown'
     this.load()
     void this.play()
   }
@@ -268,22 +347,53 @@ class Suono {
     this.next()
   }
   singleLoop() {
-    this.switch(this.playList[this.currentIndex])
+    // Using property loop for single loop
+    this.updateLoop(true)
+    // this.switch(this.playList[this.currentIndex])
   }
   random() {
-    const index = randomNumberBoth(0, this.playList.length - 1)
-    this.currentIndex = index
-    this.switch(this.playList[index])
+    this.currentIndex = this.getRandomIndex()
+    this.switch(this.playList[this.currentIndex])
   }
   listLoop() {
     this.next()
+  }
+  // A identity for audio instance
+  setId(id?: string) {
+    this.sound.id = id ? id : String(this.timestamp)
+  }
+  getId() {
+    return this.timestamp
+  }
+  getRandomIndex(): number {
+    if (this.playList.length === 1) {
+      return 0
+    }
+    if (this.playList.length === 2) {
+      // 0 or 1
+      return Math.abs(this.currentIndex - 1)
+    }
+    // Handle if got the same index with the currentIndex
+    const index = randomNumberBoth(0, this.playList.length - 1)
+    const maxIndex = this.playList.length - 1
+    if (index === this.currentIndex) {
+      if (index === maxIndex) {
+        return 0
+      } else {
+        return index + 1
+      }
+    }
+    return index
   }
   // Get instance information
   getName(): string {
     return this.name
   }
   getSrc(): string {
-    return this.sound.currentSrc || this.sound.src
+    return this.sound.src
+  }
+  getCurrentSrc(): string {
+    return this.sound.currentSrc
   }
   getCurrentTime(): number {
     return this.sound.currentTime
@@ -291,7 +401,10 @@ class Suono {
   getList(): ListItem[] {
     return this.playList
   }
-  // Update file name
+  updateLoop(status: boolean) {
+    this.loop = status
+    this.sound.loop = status
+  }
   updateName(name: string, src: string) {
     this.playList = this.playList.map(item => {
       if (item.src === src) {
@@ -300,15 +413,20 @@ class Suono {
       return item
     })
   }
+  updatePreload(type: string) {
+    this.preload = type
+    this.sound.preload = type
+  }
+  updateControls(status: boolean) {
+    this.controls = status
+    this.sound.controls = status
+  }
   // Update the view layer
   updateLoading(status: boolean) {
     this.loading = status
   }
   updateDuration(duration: number) {
     this.duration = duration
-  }
-  updateStatus(status: boolean) {
-    this.status = status
   }
   updateMode(mode: string) {
     this.mode = mode
@@ -338,13 +456,8 @@ class Suono {
     this.suonoEvent.listen('durationchange', () => {
       this.updateDuration(Math.round(this.sound.duration))
     })
-    this.suonoEvent.listen('pause', () => {
-      this.pause()
-    })
     this.suonoEvent.listen('play', () => {
       this.updateLoading(true)
-      this.updateDuration(Math.round(this.sound.duration))
-      this.updateStatus(true)
     })
     this.suonoEvent.listen('playing', () => {
       console.log(`${String(NetworkErrMap[this.sound.networkState])}`)
@@ -363,7 +476,7 @@ class Suono {
       if (this.autoSkip) {
         // Just jump off
         this.next()
-        this.playType[this.mode].call(this)
+        // this.playType[this.mode].call(this)
       }
     })
     this.suonoEvent.listen('suspend', () => {
@@ -375,7 +488,11 @@ class Suono {
   }
   handleLoadError({ code }: MediaError) {
     const suffix = ', Please refer to https://developer.mozilla.org/en-US/docs/Web/API/MediaError'
-    throw new Error(`${String(LoadErrMap[code])}${suffix}`)
+    try {
+      throw new Error(`${String(LoadErrMap[code])}${suffix}`)
+    } catch (error) {
+      console.log(error.message)
+    }
   }
 }
 

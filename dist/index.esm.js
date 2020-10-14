@@ -27,31 +27,33 @@ function randomNumberBoth(min, max) {
 var EventMap;
 (function (EventMap) {
     EventMap[EventMap["abort"] = 0] = "abort";
-    EventMap[EventMap["canplay"] = 1] = "canplay";
-    EventMap[EventMap["canplaythrough"] = 2] = "canplaythrough";
-    EventMap[EventMap["durationchange"] = 3] = "durationchange";
-    EventMap[EventMap["emptied"] = 4] = "emptied";
-    EventMap[EventMap["ended"] = 5] = "ended";
-    EventMap[EventMap["encrypted"] = 6] = "encrypted";
-    EventMap[EventMap["error"] = 7] = "error";
-    EventMap[EventMap["loadeddata"] = 8] = "loadeddata";
-    EventMap[EventMap["loadedmetadata"] = 9] = "loadedmetadata";
-    EventMap[EventMap["interruptbegin"] = 10] = "interruptbegin";
-    EventMap[EventMap["interruptend"] = 11] = "interruptend";
-    EventMap[EventMap["loadstart"] = 12] = "loadstart";
-    EventMap[EventMap["mozaudioavailable"] = 13] = "mozaudioavailable";
-    EventMap[EventMap["pause"] = 14] = "pause";
-    EventMap[EventMap["play"] = 15] = "play";
-    EventMap[EventMap["playing"] = 16] = "playing";
-    EventMap[EventMap["progress"] = 17] = "progress";
-    EventMap[EventMap["ratechange"] = 18] = "ratechange";
-    EventMap[EventMap["seeked"] = 19] = "seeked";
-    EventMap[EventMap["seeking"] = 20] = "seeking";
-    EventMap[EventMap["stalled"] = 21] = "stalled";
-    EventMap[EventMap["suspend"] = 22] = "suspend";
-    EventMap[EventMap["timeupdate"] = 23] = "timeupdate";
-    EventMap[EventMap["volumechange"] = 24] = "volumechange";
-    EventMap[EventMap["waiting"] = 25] = "waiting";
+    EventMap[EventMap["audioprocess"] = 1] = "audioprocess";
+    EventMap[EventMap["canplay"] = 2] = "canplay";
+    EventMap[EventMap["canplaythrough"] = 3] = "canplaythrough";
+    EventMap[EventMap["complete"] = 4] = "complete";
+    EventMap[EventMap["durationchange"] = 5] = "durationchange";
+    EventMap[EventMap["emptied"] = 6] = "emptied";
+    EventMap[EventMap["ended"] = 7] = "ended";
+    EventMap[EventMap["encrypted"] = 8] = "encrypted";
+    EventMap[EventMap["error"] = 9] = "error";
+    EventMap[EventMap["loadeddata"] = 10] = "loadeddata";
+    EventMap[EventMap["loadedmetadata"] = 11] = "loadedmetadata";
+    EventMap[EventMap["interruptbegin"] = 12] = "interruptbegin";
+    EventMap[EventMap["interruptend"] = 13] = "interruptend";
+    EventMap[EventMap["loadstart"] = 14] = "loadstart";
+    EventMap[EventMap["mozaudioavailable"] = 15] = "mozaudioavailable";
+    EventMap[EventMap["pause"] = 16] = "pause";
+    EventMap[EventMap["play"] = 17] = "play";
+    EventMap[EventMap["playing"] = 18] = "playing";
+    EventMap[EventMap["progress"] = 19] = "progress";
+    EventMap[EventMap["ratechange"] = 20] = "ratechange";
+    EventMap[EventMap["seeked"] = 21] = "seeked";
+    EventMap[EventMap["seeking"] = 22] = "seeking";
+    EventMap[EventMap["stalled"] = 23] = "stalled";
+    EventMap[EventMap["suspend"] = 24] = "suspend";
+    EventMap[EventMap["timeupdate"] = 25] = "timeupdate";
+    EventMap[EventMap["volumechange"] = 26] = "volumechange";
+    EventMap[EventMap["waiting"] = 27] = "waiting";
 })(EventMap || (EventMap = {}));
 var LoadErrMap = {
     1: 'MEDIA_ERR_ABORTED',
@@ -71,6 +73,27 @@ var ReadyStateMap = {
     2: 'HAVE_CURRENT_DATA',
     3: 'HAVE_FUTURE_DATA',
     4: 'HAVE_ENOUGH_DATA'
+};
+var PreloadMap;
+(function (PreloadMap) {
+    PreloadMap[PreloadMap["none"] = 0] = "none";
+    PreloadMap[PreloadMap["metadata"] = 1] = "metadata";
+    PreloadMap[PreloadMap["auto"] = 2] = "auto";
+})(PreloadMap || (PreloadMap = {}));
+var SourceTypeMap = {
+    "flac": ["audio/flac"],
+    "m3u": ["audio/mpegurl", "text/plain"],
+    "m3u8": ["audio/mpegurl", "text/plain"],
+    "m4a": ["audio/mp4"],
+    "m4b": ["audio/mp4"],
+    "mp3": ["audio/mpeg"],
+    "ogg": ["audio/ogg"],
+    "opus": ["audio/ogg"],
+    "pls": ["audio/x-scpls", "text/plain"],
+    "wav": ["audio/wav"],
+    "webm": ["audio/webm"],
+    "wma": ["audio/x-ms-wma"],
+    "xspf": ["application/xspf+xml", "text/plain"]
 };
 var SuonoEvent = (function () {
     function SuonoEvent() {
@@ -119,17 +142,32 @@ var SuonoEvent = (function () {
 var Suono = (function () {
     function Suono(options, playList) {
         if (options === void 0) { options = {}; }
+        var baseOptions = {
+            autoplay: false,
+            controls: false,
+            preload: 'metadata',
+            fallback: 'Your browser doesn\'t support HTML5 audio.',
+            autoSkip: true,
+            volume: 1,
+            mode: 'order'
+        };
+        var opt = Object.assign({}, baseOptions, options);
+        this.timestamp = +new Date;
         this.duration = 0;
-        this.status = false;
+        this.loop = false;
         this.name = '';
+        this.src = '';
         this.loading = false;
-        this.controls = false;
+        this.fallback = opt.fallback;
+        this.autoplay = opt.autoplay;
+        this.preload = opt.preload;
+        this.controls = opt.controls;
         this.sound = null;
-        this.volume = options.volume || 1;
+        this.volume = opt.volume;
         this.playList = playList || [];
         this.currentIndex = 0;
-        this.autoSkip = options.autoSkip || true;
-        this.mode = options.mode || 'order';
+        this.autoSkip = opt.autoSkip;
+        this.mode = opt.mode;
         this.playType = {
             order: this.order,
             singleLoop: this.singleLoop,
@@ -143,19 +181,51 @@ var Suono = (function () {
         if (!src) {
             throw new Error('Invalid audio source');
         }
-        this.name = name || 'unknown';
         this.playList.push({
             src: src, name: name
         });
         this.sound = document.createElement('audio');
-        this.sound.preload = 'metadata';
-        this.sound.controls = false;
+        this.setId();
+        this.updatePreload(this.preload);
+        this.updateControls(this.controls);
         this.handleEvent();
-        if (!src) {
-            throw new Error('not found');
+        this.switch({
+            src: src, name: name
+        });
+    };
+    Suono.prototype.updateAudio = function (src) {
+        if (Array.isArray(src)) {
+            var fragment_1 = document.createDocumentFragment();
+            src.forEach(function (item) {
+                var source = document.createElement('source');
+                var temp = item.split('.');
+                var ext = temp[temp.length - 1];
+                source.src = item;
+                source.type = SourceTypeMap[ext] ? SourceTypeMap[ext][0] : '';
+                fragment_1.appendChild(source);
+            });
+            this.sound.appendChild(fragment_1);
         }
-        this.sound.src = src;
-        this.load();
+        else {
+            this.sound.src = src;
+        }
+        if (this.fallback) {
+            var fragment = document.createDocumentFragment();
+            var paragraph = document.createElement('p');
+            paragraph.innerText = this.fallback;
+            this.sound.appendChild(fragment);
+        }
+    };
+    Suono.prototype.appendChild = function () {
+        document.body.appendChild(this.sound);
+    };
+    Suono.prototype.removeChild = function () {
+        document.body.removeChild(this.sound);
+    };
+    Suono.prototype.destroy = function () {
+        this.suonoEvent.trigger('beforeDeStroy', this);
+        this.pause();
+        this.sound = null;
     };
     Suono.prototype.load = function () {
         this.sound.load();
@@ -165,7 +235,6 @@ var Suono = (function () {
     };
     Suono.prototype.pause = function () {
         this.sound.pause();
-        this.updateStatus(false);
     };
     Suono.prototype.seek = function (target) {
         if (target >= this.duration) {
@@ -182,14 +251,14 @@ var Suono = (function () {
     };
     Suono.prototype.canplay = function () {
         this.updateLoading(false);
-        this.updateDuration(Math.round(this.sound.duration));
-        this.updateStatus(true);
     };
     Suono.prototype.prev = function () {
         if (this.playList.length === 0) {
             return;
         }
-        this.pause();
+        if (this.mode === 'random') {
+            return this.random();
+        }
         if (this.currentIndex === 0) {
             this.currentIndex = this.playList.length - 1;
         }
@@ -202,7 +271,10 @@ var Suono = (function () {
         if (this.playList.length === 0) {
             return;
         }
-        this.pause();
+        if (this.mode === 'random') {
+            return this.random();
+        }
+        this.currentIndex = this.getRandomIndex();
         if (this.currentIndex === this.playList.length - 1) {
             this.currentIndex = 0;
         }
@@ -213,8 +285,8 @@ var Suono = (function () {
     };
     Suono.prototype.switch = function (_a) {
         var name = _a.name, src = _a.src;
-        this.sound.src = src;
-        this.name = name;
+        this.updateAudio(src);
+        this.name = name || 'unknown';
         this.load();
         void this.play();
     };
@@ -225,15 +297,39 @@ var Suono = (function () {
         this.next();
     };
     Suono.prototype.singleLoop = function () {
-        this.switch(this.playList[this.currentIndex]);
+        this.updateLoop(true);
     };
     Suono.prototype.random = function () {
-        var index = randomNumberBoth(0, this.playList.length - 1);
-        this.currentIndex = index;
-        this.switch(this.playList[index]);
+        this.currentIndex = this.getRandomIndex();
+        this.switch(this.playList[this.currentIndex]);
     };
     Suono.prototype.listLoop = function () {
         this.next();
+    };
+    Suono.prototype.setId = function (id) {
+        this.sound.id = id ? id : String(this.timestamp);
+    };
+    Suono.prototype.getId = function () {
+        return this.timestamp;
+    };
+    Suono.prototype.getRandomIndex = function () {
+        if (this.playList.length === 1) {
+            return 0;
+        }
+        if (this.playList.length === 2) {
+            return Math.abs(this.currentIndex - 1);
+        }
+        var index = randomNumberBoth(0, this.playList.length - 1);
+        var maxIndex = this.playList.length - 1;
+        if (index === this.currentIndex) {
+            if (index === maxIndex) {
+                return 0;
+            }
+            else {
+                return index + 1;
+            }
+        }
+        return index;
     };
     Suono.prototype.getName = function () {
         return this.name;
@@ -241,11 +337,18 @@ var Suono = (function () {
     Suono.prototype.getSrc = function () {
         return this.sound.src;
     };
+    Suono.prototype.getCurrentSrc = function () {
+        return this.sound.currentSrc;
+    };
     Suono.prototype.getCurrentTime = function () {
         return this.sound.currentTime;
     };
     Suono.prototype.getList = function () {
         return this.playList;
+    };
+    Suono.prototype.updateLoop = function (status) {
+        this.loop = status;
+        this.sound.loop = status;
     };
     Suono.prototype.updateName = function (name, src) {
         this.playList = this.playList.map(function (item) {
@@ -255,14 +358,19 @@ var Suono = (function () {
             return item;
         });
     };
+    Suono.prototype.updatePreload = function (type) {
+        this.preload = type;
+        this.sound.preload = type;
+    };
+    Suono.prototype.updateControls = function (status) {
+        this.controls = status;
+        this.sound.controls = status;
+    };
     Suono.prototype.updateLoading = function (status) {
         this.loading = status;
     };
     Suono.prototype.updateDuration = function (duration) {
         this.duration = duration;
-    };
-    Suono.prototype.updateStatus = function (status) {
-        this.status = status;
     };
     Suono.prototype.updateMode = function (mode) {
         this.mode = mode;
@@ -291,22 +399,16 @@ var Suono = (function () {
         this.suonoEvent.listen('durationchange', function () {
             _this.updateDuration(Math.round(_this.sound.duration));
         });
-        this.suonoEvent.listen('pause', function () {
-            _this.pause();
-        });
         this.suonoEvent.listen('play', function () {
             _this.updateLoading(true);
-            _this.updateDuration(Math.round(_this.sound.duration));
-            _this.updateStatus(true);
         });
         this.suonoEvent.listen('playing', function () {
             console.log("" + String(NetworkErrMap[_this.sound.networkState]));
             if (_this.sound.networkState === 2) {
                 _this.updateLoading(true);
+                return;
             }
-            if (_this.sound.networkState === 3 || _this.sound.networkState === 4) {
-                _this.updateLoading(false);
-            }
+            _this.updateLoading(false);
         });
         this.suonoEvent.listen('ended', function () {
             _this.playType[_this.mode].call(_this);
@@ -315,7 +417,6 @@ var Suono = (function () {
             _this.handleLoadError(_this.sound.error);
             if (_this.autoSkip) {
                 _this.next();
-                _this.playType[_this.mode].call(_this);
             }
         });
         this.suonoEvent.listen('suspend', function () {
@@ -328,7 +429,12 @@ var Suono = (function () {
     Suono.prototype.handleLoadError = function (_a) {
         var code = _a.code;
         var suffix = ', Please refer to https://developer.mozilla.org/en-US/docs/Web/API/MediaError';
-        throw new Error("" + String(LoadErrMap[code]) + suffix);
+        try {
+            throw new Error("" + String(LoadErrMap[code]) + suffix);
+        }
+        catch (error) {
+            console.log(error.message);
+        }
     };
     return Suono;
 }());

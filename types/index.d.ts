@@ -1,8 +1,12 @@
 interface Suono {
     sound: HTMLAudioElement;
     name: string;
+    src: string | string[];
     duration: number;
-    status: boolean;
+    autoplay: boolean;
+    preload: string;
+    loop: boolean;
+    fallback: string;
     loading: boolean;
     controls: boolean;
     playList: ListItem[];
@@ -11,11 +15,12 @@ interface Suono {
     playType: PlayType;
     autoSkip: boolean;
     volume: number;
+    timestamp: number;
     suonoEvent: SuonoEvent;
 }
 interface ListItem {
     [property: string]: any;
-    src: string;
+    src: string | string[];
     name: string;
 }
 interface PlayType {
@@ -30,6 +35,9 @@ interface Options {
     autoSkip?: boolean;
     mode?: string;
     volume?: number;
+    preload?: string;
+    controls?: boolean;
+    autoplay?: boolean;
 }
 interface SuonoEvent {
     clientList: Record<string, any>;
@@ -43,6 +51,10 @@ declare class SuonoEvent {
 declare class Suono {
     constructor(options?: Options, playList?: ListItem[]);
     init({ src, name }: ListItem): void;
+    updateAudio(src: string | string[]): void;
+    appendChild(): void;
+    removeChild(): void;
+    destroy(): void;
     load(): void;
     play(): void;
     pause(): void;
@@ -56,14 +68,20 @@ declare class Suono {
     singleLoop(): void;
     random(): void;
     listLoop(): void;
+    setId(id?: string): void;
+    getId(): number;
+    getRandomIndex(): number;
     getName(): string;
     getSrc(): string;
+    getCurrentSrc(): string;
     getCurrentTime(): number;
     getList(): ListItem[];
+    updateLoop(status: boolean): void;
     updateName(name: string, src: string): void;
+    updatePreload(type: string): void;
+    updateControls(status: boolean): void;
     updateLoading(status: boolean): void;
     updateDuration(duration: number): void;
-    updateStatus(status: boolean): void;
     updateMode(mode: string): void;
     updateList(list: ListItem[]): void;
     handleEvent(): void;

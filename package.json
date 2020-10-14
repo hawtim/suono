@@ -1,19 +1,15 @@
 {
   "name": "suono",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "dist/index.js",
   "types": "types/index.d.ts",
-  "directories": {
-    "test": "test"
-  },
   "scripts": {
     "prebuild": "del-cli dist",
     "esm": "tsc --module esnext && cpy dist/index.js dist --rename index.esm.js",
     "cjs": "tsc --module commonjs",
     "build": "npm run esm && npm run cjs",
     "test": "ava",
-    "prepublishOnly": "npm run build",
     "dev": "npm run build --watch",
     "lint": "xo --fix"
   },
@@ -21,8 +17,8 @@
     "type": "git",
     "url": "git+https://github.com/hawtim/suono.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "hawtim<hawtimzhang@gmail.com>",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/hawtim/suono/issues"
   },

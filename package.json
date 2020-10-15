@@ -1,9 +1,16 @@
 {
   "name": "suono",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "main": "dist/index.js",
   "types": "types/index.d.ts",
+  "keywords": [
+    "audio",
+    "player",
+    "typescript",
+    "media",
+    "application"
+  ],
   "scripts": {
     "prebuild": "del-cli dist",
     "esm": "tsc --module esnext && cpy dist/index.js dist --rename index.esm.js",
@@ -12,6 +19,9 @@
     "test": "ava",
     "dev": "npm run build --watch",
     "lint": "xo --fix"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   },
   "repository": {
     "type": "git",
@@ -28,7 +38,6 @@
     "cpy-cli": "^3.1.1",
     "del-cli": "^3.0.1",
     "jsdom": "^16.4.0",
-    "sinon": "^9.2.0",
     "xo": "^0.33.1"
   }
 }

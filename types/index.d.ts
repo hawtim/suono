@@ -7,6 +7,7 @@ interface Suono {
     preload: string;
     loop: boolean;
     fallback: string;
+    debug: boolean;
     loading: boolean;
     controls: boolean;
     playList: ListItem[];
@@ -16,6 +17,7 @@ interface Suono {
     autoSkip: boolean;
     volume: number;
     timestamp: number;
+    crossorigin: string;
     suonoEvent: SuonoEvent;
 }
 interface ListItem {
@@ -60,7 +62,6 @@ declare class Suono {
     pause(): void;
     seek(target: number): void;
     skipTo(listItem: ListItem): void;
-    canplay(): void;
     prev(): void;
     next(): void;
     switch({ name, src }: ListItem): void;
@@ -84,6 +85,7 @@ declare class Suono {
     updateDuration(duration: number): void;
     updateMode(mode: string): void;
     updateList(list: ListItem[]): void;
+    debugConsole(string: string): void;
     handleEvent(): void;
     handleLoadError({ code }: MediaError): void;
 }

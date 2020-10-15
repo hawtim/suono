@@ -149,7 +149,9 @@ var Suono = (function () {
             fallback: 'Your browser doesn\'t support HTML5 audio.',
             autoSkip: true,
             volume: 1,
-            mode: 'order'
+            mode: 'order',
+            debug: false,
+            crossorigin: 'anonymous'
         };
         var opt = Object.assign({}, baseOptions, options);
         this.timestamp = +new Date;
@@ -157,9 +159,11 @@ var Suono = (function () {
         this.loop = false;
         this.name = '';
         this.src = '';
+        this.debug = opt.debug;
         this.loading = false;
         this.fallback = opt.fallback;
         this.autoplay = opt.autoplay;
+        this.crossorigin = opt.crossorigin;
         this.preload = opt.preload;
         this.controls = opt.controls;
         this.sound = null;
@@ -213,6 +217,7 @@ var Suono = (function () {
             var fragment = document.createDocumentFragment();
             var paragraph = document.createElement('p');
             paragraph.innerText = this.fallback;
+            fragment.appendChild(paragraph);
             this.sound.appendChild(fragment);
         }
     };
@@ -248,9 +253,6 @@ var Suono = (function () {
         var index = this.playList.findIndex(function (item) { return item === listItem; });
         this.pause();
         this.switch(this.playList[index]);
-    };
-    Suono.prototype.canplay = function () {
-        this.updateLoading(false);
     };
     Suono.prototype.prev = function () {
         if (this.playList.length === 0) {
@@ -385,16 +387,18 @@ var Suono = (function () {
             this.playList = this.playList.concat(list);
         }
     };
+    Suono.prototype.debugConsole = function (string) {
+        if (this.debug) {
+            console.log(string);
+        }
+    };
     Suono.prototype.handleEvent = function () {
         var _this = this;
         Object.keys(EventMap).forEach(function (key) {
             _this.sound.addEventListener(key, function () {
-                console.log(key);
+                _this.debugConsole(key);
                 _this.suonoEvent.trigger(key, _this);
             });
-        });
-        this.suonoEvent.listen('canplay', function () {
-            _this.canplay();
         });
         this.suonoEvent.listen('durationchange', function () {
             _this.updateDuration(Math.round(_this.sound.duration));
@@ -403,7 +407,7 @@ var Suono = (function () {
             _this.updateLoading(true);
         });
         this.suonoEvent.listen('playing', function () {
-            console.log("" + String(NetworkErrMap[_this.sound.networkState]));
+            _this.debugConsole("" + String(NetworkErrMap[_this.sound.networkState]));
             if (_this.sound.networkState === 2) {
                 _this.updateLoading(true);
                 return;
@@ -433,7 +437,7 @@ var Suono = (function () {
             throw new Error("" + String(LoadErrMap[code]) + suffix);
         }
         catch (error) {
-            console.log(error.message);
+            this.debugConsole(error.message);
         }
     };
     return Suono;

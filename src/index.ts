@@ -7,6 +7,7 @@ interface Suono {
   preload: string
   loop: boolean
   fallback: string
+  debug: boolean
   loading: boolean
   controls: boolean
   playList: ListItem[]
@@ -16,6 +17,7 @@ interface Suono {
   autoSkip: boolean
   volume: number
   timestamp: number
+  crossorigin: string
   suonoEvent: SuonoEvent
 }
 
@@ -192,7 +194,9 @@ class Suono {
       fallback: 'Your browser doesn\'t support HTML5 audio.',
       autoSkip: true,
       volume: 1,
-      mode: 'order'
+      mode: 'order',
+      debug: false,
+      crossorigin: 'anonymous' // use-credentials
     }
     const opt = Object.assign({}, baseOptions, options)
     this.timestamp = +new Date
@@ -200,9 +204,11 @@ class Suono {
     this.loop = false
     this.name = ''
     this.src = ''
+    this.debug = opt.debug
     this.loading = false
     this.fallback = opt.fallback
     this.autoplay = opt.autoplay
+    this.crossorigin = opt.crossorigin
     // To avoid loading the whole file, preload the meta data.
     this.preload = opt.preload
     // No controls by default
@@ -262,6 +268,7 @@ class Suono {
       let fragment = document.createDocumentFragment()
       const paragraph = document.createElement('p')
       paragraph.innerText = this.fallback
+      fragment.appendChild(paragraph)
       this.sound.appendChild(fragment)
     }
   }
@@ -276,6 +283,7 @@ class Suono {
     this.pause()
     this.sound = null
   }
+
   // Load the file
   load() {
     this.sound.load()
@@ -298,9 +306,6 @@ class Suono {
     const index = this.playList.findIndex(item => item === listItem)
     this.pause()
     this.switch(this.playList[index])
-  }
-  canplay() {
-    this.updateLoading(false)
   }
   // Handle the play mode
   prev() {
@@ -440,19 +445,21 @@ class Suono {
       this.playList = this.playList.concat(list)
     }
   }
+  debugConsole(string: string) {
+    if (this.debug) {
+      console.log(string)
+    }
+  }
   // Handle events and errors
   handleEvent() {
     // Add events cyclically
     Object.keys(EventMap).forEach(key => {
       this.sound.addEventListener(key, () => {
-        console.log(key)
+        this.debugConsole(key)
         this.suonoEvent.trigger(key, this)
       })
     })
     // Custom callback for specific event
-    this.suonoEvent.listen('canplay', () => {
-      this.canplay()
-    })
     this.suonoEvent.listen('durationchange', () => {
       this.updateDuration(Math.round(this.sound.duration))
     })
@@ -460,7 +467,7 @@ class Suono {
       this.updateLoading(true)
     })
     this.suonoEvent.listen('playing', () => {
-      console.log(`${String(NetworkErrMap[this.sound.networkState])}`)
+      this.debugConsole(`${String(NetworkErrMap[this.sound.networkState])}`)
       if (this.sound.networkState === 2) {
         this.updateLoading(true)
         return
@@ -491,7 +498,7 @@ class Suono {
     try {
       throw new Error(`${String(LoadErrMap[code])}${suffix}`)
     } catch (error) {
-      console.log(error.message)
+      this.debugConsole(error.message)
     }
   }
 }

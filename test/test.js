@@ -1,7 +1,6 @@
-// import { Suono, SingleTonSuono } from '../dist/index.esm.js'
 const { JSDOM } = require('jsdom')
 const sinon = require('sinon')
-const { Suono, SingleTonSuono } = require('../dist/index.js')
+const { Suono, SingleTonSuono } = require('../dist')
 const test = require('ava')
 
 // Global attach document for dom test, https://stackoverflow.com/a/55926916/12660113
@@ -11,21 +10,21 @@ test.beforeEach(() => {
 })
 
 test('singleton', t => {
-  var suono = new SingleTonSuono({
+  const suono = new SingleTonSuono({
     mode: 'random'
   })
-  var suono1 = new SingleTonSuono()
+  const suono1 = new SingleTonSuono()
   t.is(suono1 === suono, true)
 })
 
 test('foo', t => {
   t.pass()
-  // console.log(Object.keys(t))
+  // Console.log(Object.keys(t))
 })
 
 test('bar', async t => {
-	const bar = Promise.resolve('bar')
-	t.is(await bar, 'bar')
+  const bar = Promise.resolve('bar')
+  t.is(await bar, 'bar')
 })
 
 test('init', t => {
@@ -77,7 +76,7 @@ test('pause', t => {
   suono.pause()
 })
 test('listen', t => {
-  
+
 })
 test('seek', t => {
 

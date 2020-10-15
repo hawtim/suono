@@ -9,5 +9,5 @@ module.exports = {
     'object-curly-spacing': ['off'],
     'padding-line-between-statements': ['off']
   },
-  ignore: ['types/index.d.ts', 'tests/**.*']
+  ignore: ['types/index.d.ts', 'test/**.*']
 }

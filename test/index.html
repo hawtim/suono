@@ -21,7 +21,8 @@
     // 测试单例模式
     window.SingleTonSuono = SingleTonSuono
     var suono = new SingleTonSuono({
-      mode: 'random'
+      mode: 'random',
+      autoSkip: false
     })
     var suono1 = new SingleTonSuono()
     console.log('suono1 === suono', suono1 === suono)
@@ -80,6 +81,7 @@
       }
     ])
     console.log(suono.getList())
+    // suono.append()
     // Also you can add custom methods in suono's prototype
     // DOMException: play() failed because the user didn't interact with the document first. https://goo.gl/xX8pDD
     // suono.play()

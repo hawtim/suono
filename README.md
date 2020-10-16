@@ -8,6 +8,8 @@ Suono 是一个业务型音频库，比如音乐 app，付费音频 app 等业�
 [![xo][xo]][xo-url]
 ![prs]
 [![licenses][licenses]][licenses-url]
+[![npm][npm-img]][npm-url]
+[![node][node-img]][node-url]
 
 ## Feature
 
@@ -324,3 +326,7 @@ MIT
 [xo]: https://img.shields.io/badge/code_style-XO-5ed9c7.svg
 [licenses-url]: https://app.fossa.com/projects/git%2Bgithub.com%2Fhawtim%2Fsuono?ref=badge_shield
 [licenses]: https://app.fossa.com/api/projects/git%2Bgithub.com%2Fhawtim%2Fsuono.svg?type=shield
+[npm-img]: https://img.shields.io/npm/v/suono.svg
+[npm-url]: https://npmjs.com/package/suono
+[node-img]: https://img.shields.io/node/v/vite.svg
+[node-url]: https://nodejs.org/en/about/releases/

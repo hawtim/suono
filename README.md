@@ -4,12 +4,13 @@ Suono 是一个业务型音频库，比如音乐 app，付费音频 app 等业�
 
 保留了一定的拓展性，有任何场景需要欢迎 PR & Issues。
 
+[![npm][npm-img]][npm-url]
+[![node][node-img]][node-url]
 ![typescript][typescript]
 [![xo][xo]][xo-url]
 ![prs]
 [![licenses][licenses]][licenses-url]
-[![npm][npm-img]][npm-url]
-[![node][node-img]][node-url]
+
 
 ## Feature
 

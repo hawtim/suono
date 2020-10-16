@@ -11,6 +11,35 @@ Suono 是一个业务型音频库，比如音乐 app，付费音频 app 等业�
 ![prs]
 [![licenses][licenses]][licenses-url]
 
+## Installation
+
+```bash
+
+npm i suono
+
+# or using yarn
+
+yarn add suono
+
+```
+
+实例化
+
+```js
+import { Suono, SingleTonSuono } from 'suono'
+
+var suono = new Suono({
+  autoplay: false,
+  controls: false,
+  preload: 'metadata',
+  fallback: 'Your browser doesn\'t support HTML5 audio.',
+  autoSkip: true,
+  volume: 1,
+  mode: 'order',
+  debug: false,
+  crossorigin: 'anonymous'
+})
+```
 
 ## Feature
 
@@ -63,7 +92,7 @@ Suono 是一个业务型音频库，比如音乐 app，付费音频 app 等业�
 <audio controls>
   <source src="myAudio.mp3" type="audio/mpeg">
   <source src="myAudio.ogg" type="audio/ogg">
-  <p>Your browser doesn't support HTML5 audio. Here is a <a href="myAudio.mp3">link to the audio</a> instead.</p>
+  <p>Your browser doesn\'t support HTML5 audio. Here is a <a href="myAudio.mp3">link to the audio</a> instead.</p>
 </audio>
 ```
 

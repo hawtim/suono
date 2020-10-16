@@ -1,6 +1,6 @@
 {
   "name": "suono",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A audio library for applications.",
   "main": "dist/index.js",
   "types": "types/index.d.ts",

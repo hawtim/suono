@@ -6,10 +6,14 @@ Suono 是一个业务型音频库，比如音乐 app，付费音频 app 等业�
 
 [![npm][npm-img]][npm-url]
 [![node][node-img]][node-url]
+[![size][size]][size-url]
+[![npm-l][npm-l]][npm-l-url]
+<!-- [![npm-d][npm-d]][npm-d-url] -->
+<!-- [![licenses][licenses]][licenses-url] -->
+
 ![typescript][typescript]
 [![xo][xo]][xo-url]
 ![prs]
-[![licenses][licenses]][licenses-url]
 
 ## Installation
 
@@ -351,6 +355,8 @@ var suono = new Suono({
 MIT
 
 [prs]: https://img.shields.io/badge/PRs-welcome-brightgreen.svg
+[size]: https://badge-size.herokuapp.com/hawtim/suono/master/dist/index.js?compression=gzip&style=flat-square
+[size-url]: https://github.com/hawtim/suono/master/dist/
 [typescript]: https://img.shields.io/badge/-TypeScript-007ACC?style=flat-square&logo=typescript
 [xo-url]: https://github.com/xojs/xo
 [xo]: https://img.shields.io/badge/code_style-XO-5ed9c7.svg
@@ -360,3 +366,7 @@ MIT
 [npm-url]: https://npmjs.com/package/suono
 [node-img]: https://img.shields.io/node/v/vite.svg
 [node-url]: https://nodejs.org/en/about/releases/
+[npm-l]: https://img.shields.io/npm/l/suono.svg?style=flat-square
+[npm-l-url]: https://github.com/hawtim/suono/blob/master/LICENSE
+[npm-d]: https://img.shields.io/npm/dt/suono.svg?style=flat-square
+[npm-d-url]: https://www.npmjs.com/package/suono

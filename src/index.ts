@@ -31,7 +31,7 @@ interface PlayType {
   [playType: string]: () => void
   order: () => void
   singleLoop: () => void
-  random: () => void
+  shuffle: () => void
   listLoop: () => void
 }
 
@@ -112,19 +112,19 @@ const NetworkErrMap = {
   3: 'NETWORK_NO_SOURCE'
 }
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/readyState
-const ReadyStateMap = {
-  0: 'HAVE_NOTHING',
-  1: 'HAVE_METADATA',
-  2: 'HAVE_CURRENT_DATA',
-  3: 'HAVE_FUTURE_DATA',
-  4: 'HAVE_ENOUGH_DATA'
-}
+// const ReadyStateMap = {
+//   0: 'HAVE_NOTHING',
+//   1: 'HAVE_METADATA',
+//   2: 'HAVE_CURRENT_DATA',
+//   3: 'HAVE_FUTURE_DATA',
+//   4: 'HAVE_ENOUGH_DATA'
+// }
 
-enum PreloadMap {
-  none,
-  metadata,
-  auto
-}
+// enum PreloadMap {
+//   none,
+//   metadata,
+//   auto
+// }
 // https://github.com/rello/audioplayer/wiki/audio-files-and-mime-types
 const SourceTypeMap = {
   "flac": ["audio/flac"],
@@ -225,7 +225,7 @@ class Suono {
     this.playType = {
       order: this.order,
       singleLoop: this.singleLoop,
-      random: this.random,
+      shuffle: this.shuffle,
       listLoop: this.listLoop
     }
     // Initialize the event bridge
@@ -281,6 +281,7 @@ class Suono {
   destroy() {
     this.suonoEvent.trigger('beforeDeStroy', this)
     this.pause()
+    this.removeEvent()
     this.sound = null
   }
 
@@ -313,8 +314,8 @@ class Suono {
     if (this.playList.length === 0) {
       return
     }
-    if (this.mode === 'random') {
-      return this.random()
+    if (this.mode === 'shuffle') {
+      return this.shuffle()
     }
     if (this.currentIndex === 0) {
       this.currentIndex = this.playList.length - 1
@@ -327,8 +328,8 @@ class Suono {
     if (this.playList.length === 0) {
       return
     }
-    if (this.mode === 'random') {
-      return this.random()
+    if (this.mode === 'shuffle') {
+      return this.shuffle()
     }
     this.currentIndex = this.getRandomIndex()
     // this.pause()
@@ -356,7 +357,7 @@ class Suono {
     this.updateLoop(true)
     // this.switch(this.playList[this.currentIndex])
   }
-  random() {
+  shuffle() {
     this.currentIndex = this.getRandomIndex()
     this.switch(this.playList[this.currentIndex])
   }
@@ -450,15 +451,28 @@ class Suono {
       console.log(string)
     }
   }
-  // Handle events and errors
-  handleEvent() {
-    // Add events cyclically
+  bindEvent() {
     Object.keys(EventMap).forEach(key => {
       this.sound.addEventListener(key, () => {
         this.debugConsole(key)
         this.suonoEvent.trigger(key, this)
       })
     })
+  }
+  removeEvent() {
+    Object.keys(EventMap).forEach(key => {
+      this.sound.removeEventListener(key, () => {
+        this.suonoEvent.remove(key, () => {
+          this.debugConsole(key)
+          this.suonoEvent.trigger(key, this)
+        })
+      })
+    })
+  }
+  // Handle events and errors
+  handleEvent() {
+    // Add events cyclically
+    this.bindEvent()
     // Custom callback for specific event
     this.suonoEvent.listen('durationchange', () => {
       this.updateDuration(Math.round(this.sound.duration))

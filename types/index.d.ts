@@ -29,7 +29,7 @@ interface PlayType {
     [playType: string]: () => void;
     order: () => void;
     singleLoop: () => void;
-    random: () => void;
+    shuffle: () => void;
     listLoop: () => void;
 }
 interface Options {
@@ -67,7 +67,7 @@ declare class Suono {
     switch({ name, src }: ListItem): void;
     order(): void;
     singleLoop(): void;
-    random(): void;
+    shuffle(): void;
     listLoop(): void;
     setId(id?: string): void;
     getId(): number;
@@ -86,6 +86,8 @@ declare class Suono {
     updateMode(mode: string): void;
     updateList(list: ListItem[]): void;
     debugConsole(string: string): void;
+    bindEvent(): void;
+    removeEvent(): void;
     handleEvent(): void;
     handleLoadError({ code }: MediaError): void;
 }

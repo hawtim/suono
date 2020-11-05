@@ -67,19 +67,6 @@ var NetworkErrMap = {
     2: 'NETWORK_LOADING',
     3: 'NETWORK_NO_SOURCE'
 };
-var ReadyStateMap = {
-    0: 'HAVE_NOTHING',
-    1: 'HAVE_METADATA',
-    2: 'HAVE_CURRENT_DATA',
-    3: 'HAVE_FUTURE_DATA',
-    4: 'HAVE_ENOUGH_DATA'
-};
-var PreloadMap;
-(function (PreloadMap) {
-    PreloadMap[PreloadMap["none"] = 0] = "none";
-    PreloadMap[PreloadMap["metadata"] = 1] = "metadata";
-    PreloadMap[PreloadMap["auto"] = 2] = "auto";
-})(PreloadMap || (PreloadMap = {}));
 var SourceTypeMap = {
     "flac": ["audio/flac"],
     "m3u": ["audio/mpegurl", "text/plain"],
@@ -175,7 +162,7 @@ var Suono = (function () {
         this.playType = {
             order: this.order,
             singleLoop: this.singleLoop,
-            random: this.random,
+            shuffle: this.shuffle,
             listLoop: this.listLoop
         };
         this.suonoEvent = new SuonoEvent();
@@ -230,6 +217,7 @@ var Suono = (function () {
     Suono.prototype.destroy = function () {
         this.suonoEvent.trigger('beforeDeStroy', this);
         this.pause();
+        this.removeEvent();
         this.sound = null;
     };
     Suono.prototype.load = function () {
@@ -258,8 +246,8 @@ var Suono = (function () {
         if (this.playList.length === 0) {
             return;
         }
-        if (this.mode === 'random') {
-            return this.random();
+        if (this.mode === 'shuffle') {
+            return this.shuffle();
         }
         if (this.currentIndex === 0) {
             this.currentIndex = this.playList.length - 1;
@@ -273,8 +261,8 @@ var Suono = (function () {
         if (this.playList.length === 0) {
             return;
         }
-        if (this.mode === 'random') {
-            return this.random();
+        if (this.mode === 'shuffle') {
+            return this.shuffle();
         }
         this.currentIndex = this.getRandomIndex();
         if (this.currentIndex === this.playList.length - 1) {
@@ -301,7 +289,7 @@ var Suono = (function () {
     Suono.prototype.singleLoop = function () {
         this.updateLoop(true);
     };
-    Suono.prototype.random = function () {
+    Suono.prototype.shuffle = function () {
         this.currentIndex = this.getRandomIndex();
         this.switch(this.playList[this.currentIndex]);
     };
@@ -392,7 +380,7 @@ var Suono = (function () {
             console.log(string);
         }
     };
-    Suono.prototype.handleEvent = function () {
+    Suono.prototype.bindEvent = function () {
         var _this = this;
         Object.keys(EventMap).forEach(function (key) {
             _this.sound.addEventListener(key, function () {
@@ -400,6 +388,21 @@ var Suono = (function () {
                 _this.suonoEvent.trigger(key, _this);
             });
         });
+    };
+    Suono.prototype.removeEvent = function () {
+        var _this = this;
+        Object.keys(EventMap).forEach(function (key) {
+            _this.sound.removeEventListener(key, function () {
+                _this.suonoEvent.remove(key, function () {
+                    _this.debugConsole(key);
+                    _this.suonoEvent.trigger(key, _this);
+                });
+            });
+        });
+    };
+    Suono.prototype.handleEvent = function () {
+        var _this = this;
+        this.bindEvent();
         this.suonoEvent.listen('durationchange', function () {
             _this.updateDuration(Math.round(_this.sound.duration));
         });

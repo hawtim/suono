@@ -164,7 +164,7 @@ var suono = new Suono({
 
 #### mode: string
 
-四种内置的播放类型，`'order', 'singleLoop', 'random', 'listLoop'`
+四种内置的播放类型，`'order', 'singleLoop', 'shuffle', 'listLoop'`
 
 #### playType: PlayType
 
@@ -251,7 +251,7 @@ var suono = new Suono({
 
 单曲循环，使用 audio.loop 属性
 
-#### random()
+#### shuffle()
 
 随机播放，上/下一首会根据此计算下一首的索引
 

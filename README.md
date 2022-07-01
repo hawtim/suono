@@ -341,15 +341,6 @@ var suono = new Suono({
 - 自动化测试用例为 `test/test.js`
 - 手动测试用例为 `test/index.html`
 
-## Screenshot
-
-[![付费音频](./screenshot/付费音频.png '付费音频')](https://wap.91160.com/vue/doctorlesson/detail.html?classId=177&fileId=5285890791108124016)
-
-当然，实现一个音乐app 的播放逻辑也是可以的。此库的逻辑原型来源于网易云音乐。
-
-![网易云音乐](./screenshot/网易云音乐.jpeg)
-
-
 ## License
 
 MIT

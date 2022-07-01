@@ -1,38 +1,30 @@
 ## Suono
 
-Suono 是一个业务型音频库，比如音乐 app，付费音频 app 等业务场景，兼容至安卓浏览器原生浏览器。实际上线产品参考 Screenshot 一节。
+Suono is a simple native audio lib for music application, it compatible with android native browser.
 
-保留了一定的拓展性，有任何场景需要欢迎 PR & Issues。
+Easy to extend and welcome PR and issues. ![prs]
 
 [![npm][npm-img]][npm-url]
 [![node][node-img]][node-url]
 [![size][size]][size-url]
 [![npm-l][npm-l]][npm-l-url]
-<!-- [![npm-d][npm-d]][npm-d-url] -->
-<!-- [![licenses][licenses]][licenses-url] -->
-
-![typescript][typescript]
-[![xo][xo]][xo-url]
-![prs]
+[![npm-d][npm-d]][npm-d-url]
+[![licenses][licenses]][licenses-url]
 
 ## Installation
 
 ```bash
-
 npm i suono
-
 # or using yarn
-
 yarn add suono
-
 ```
 
-实例化
+## Started
 
-```js
-import { Suono, SingleTonSuono } from 'suono'
+```ts
+import { Suono } from 'suono'
 
-var suono = new Suono({
+const suono = new Suono({
   autoplay: false,
   controls: false,
   preload: 'metadata',
@@ -45,281 +37,153 @@ var suono = new Suono({
 })
 ```
 
-## Feature
-
-- 支持单例模式，全局实例共享
-- 支持发布订阅模式，监听所有音频事件并回调实例
-- 内置了四种播放模式，顺序播放、列表循环、单曲循环、随机播放
-- 支持自定义播放模式
-- 支持多种类型的音频文件并根据文件后缀匹配类型，同时支持降级提示
-
-## Example
-
-### 单例模式
-
-```html
-<script type="module">
-  import { SingleTonSuono } from '../dist/index.esm.js'
-  var suono = new SingleTonSuono()
-  var suono1 = new SingleTonSuono()
-  console.log(suono1 === suono) // true
-</script>
-```
-
-### 非单例模式
-
 ```html
 <script type="module">
   import { Suono } from '../dist/index.esm.js'
-  var suono = new Suono()
-</script>
-```
-
-### 四种播放模式
-
-支持自定义播放模式，例如心动模式。
-
-```html
-<script type="module">
-  import { Suono } from '../dist/index.esm.js'
-  var suono = new Suono({
-    mode: 'order' // 默认
+  const suono = new Suono({
+    mode: 'order' // default value
   })
 </script>
 ```
 
-### 支持多种文件类型和降级提示
+## Feature
 
-```js
-
-// result
-<audio controls>
-  <source src="myAudio.mp3" type="audio/mpeg">
-  <source src="myAudio.ogg" type="audio/ogg">
-  <p>Your browser doesn\'t support HTML5 audio. Here is a <a href="myAudio.mp3">link to the audio</a> instead.</p>
-</audio>
-```
+- Support singleton with globally shared and multiple instaces
+- Support Publish-Subscribe, listen to audio events and can set callback to provide fully controlled
+- Have four play mode inside, order, list, single, random and also custom mode
+- Support multiple audio file extenstion and allow to fallback
 
 ## Options
 
-### Audio 使用
+### src: string | string[]
 
-#### src: string | string[]
+return the current source of the audio
 
-当前音频 src
+### debug: boolean
 
-#### debug: boolean
+for debugging
 
-调试模式
+### autoplay: boolean
 
-#### autoplay: boolean
+set auto play or not, according to the browser autoplay strategy
+### preload: string
 
-是否自动播放，需要遵循浏览器的自动播放策略
+set the native preload type, such as `none, metadata, auto`. Default value is `metadata`
 
-#### preload: string
+### loop: boolean
 
-预加载类型，`none, metadata, auto`，默认为 `metadata`
+set loop, default false
 
-#### loop: boolean
+### controls: boolean
 
-是否循环播放
+set true to show the native controls for audio tag
 
-#### controls: boolean
+### volume: number
 
-是否展示音频控件
+set the range of volume, range from 0 to 1
 
-#### volume: number
+### crossorigin: string
 
-音量大小，范围 [0, 1]
+if face the croessorigin issue, you can set the crossorigin type: `anonymous` or `use-credentials`
 
-#### crossorigin: string
 
-跨域加载类型， `anonymous` 或者 `use-credentials`
+### Instance properties
 
-### 播放逻辑使用
+### name: string
 
-#### name: string
+### duration: number
 
-音频名称
+### fallback: string
 
-#### duration: number
+### loading: boolean
 
-音频播放时长
+if the source is loading, will return true
 
-#### fallback: string
+### playList: ListItem[]
 
-降级提示
+the playlist from the instance
+### currentIndex: number
 
-#### loading: boolean
+the current index in the playlist
 
-是否处在加载资源状态
+### mode: string
 
-#### playList: ListItem[]
+the playmode,`'order', 'single', 'shuffle', 'list'`
 
-播放列表
+### autoSkip: boolean
 
-#### currentIndex: number
-
-当前播放列表项目索引
-
-#### mode: string
-
-四种内置的播放类型，`'order', 'singleLoop', 'shuffle', 'listLoop'`
-
-#### playType: PlayType
-
-四种内置的播放策略，支持自定义播放类型
-
-#### autoSkip: boolean
-
-遇到播放错误等情况时是否自动进入下一首
-
-#### timestamp: number
-
-根据生成的时间戳用于生成唯一的 audio id
-
-#### suonoEvent: SuonoEvent
-
-发布订阅监管所有的 audio 事件触发
+set auto skip to next audio when encounter errors or something else
 
 ## API
 
-### 通用
+### init({ src, name }: ListItem)
 
-#### init({ src, name }: ListItem)
+create the audio in the memory and register the hooks for events, and load the resources.
 
-初始化播放，在内存中创建 audio 标签，注册订阅发布事件提供钩子，调用加载资源的方法
+### load()
 
-#### updateAudio(src: string | string[])
+reset the media element and load the resources, play from the start
 
-用于更新节点，同时添加降级提示
+### play()
 
-- src 是单个字符串：直接更新 audio 标签的 src
-- src 是字符串数组：在 audio 标签内部挂载 source 标签并自动根据文件后缀设置 type
+play the audio
 
-通过 this.fallback 的值设置降级提示
+### pause()
 
-#### load()
+pause the audio
 
-加载资源，将媒体元素重置为其初始状态，并开始选择媒体源并加载媒体，以准备从头开始播放
+### seek(target: number)
 
-#### play()
+seek to the specific timing of the audio
 
-音频播放
+### skipTo(listItem: ListItem) / switch({ name, src }: ListItem)
 
-#### pause()
+skip to the other item in the playlist and play
 
-音频暂停
+### prev() && next()
 
-#### seek(target: number)
+play the previous or the next item in the playlist, will have different behavior accord to different play mode
 
-快进到某个位置
+### appendChild()
 
-#### skipTo(listItem: ListItem)
+append the audio element before the end tag of body
 
-跳转到某一个列表项并播放
+### removeChild()
 
-#### prev() && next()
+remove the audio element from the end tag of body
 
-上/下一个播放项目，根据不同的播放模式有不同的行为
+### destroy()
 
-#### switch({ name, src }: ListItem)
+destroy the audio instance and element
 
-切换到对应的项目并播放
+### getName(): string
 
-### DOM 挂载
+get current item name
 
-#### appendChild()
+### getSrc(): string
 
-将当前音频 DOM 挂载到页面上
+get current item src
 
-#### removeChild()
+### getCurrentSrc(): string
 
-将音频 DOM 从页面中移除
+get current item sources, for multiple source item
 
-#### destroy()
+### getCurrentTime(): number
 
-销毁音频实例，需要重新调用 init
+### getPlayList(): ListItem[]
 
-### 播放模式
+### updateLoop(status: boolean)
 
-#### order()
+### updateName(name: string, src: string)
 
-顺序播放模式，到列表最后一项会停止播放
+### updateLoading(status: boolean)
 
-#### singleLoop()
+### updateDuration(duration: number)
 
-单曲循环，使用 audio.loop 属性
+### updatePlayMode(mode: string)
 
-#### shuffle()
+### updatePlayList(list: ListItem[])
 
-随机播放，上/下一首会根据此计算下一首的索引
-
-#### listLoop()
-
-列表循环，区别在于到列表最后一项的行为，列表循环为重新回到第一首
-
-### 获取实例信息
-
-#### getName(): string
-
-获取当前播放项的名称
-
-#### getSrc(): string
-
-获取当前播放项的 src
-
-#### getCurrentSrc(): string
-
-获取当前播放项的实际播放 src ，对于有多个资源的项目
-
-#### getCurrentTime(): number
-
-获取当前播放项的进度时间
-
-#### getList(): ListItem[]
-
-获取当前的播放列表
-
-### 更新数据
-
-#### updateLoop(status: boolean)
-
-更新 audio 标签的 loop 属性
-
-#### updateName(name: string, src: string)
-
-更新 Suono 实例的名称
-
-#### updateLoading(status: boolean)
-
-更新 Suono 实例的加载状态
-
-#### updateDuration(duration: number)
-
-更新 Suono 实例的播放时长
-
-#### updateMode(mode: string)
-
-更换播放模式
-
-#### updateList(list: ListItem[])
-
-更新播放列表
-
-### 错误 & 调试
-
-#### debugConsole(string: string)
-
-调试模式下输出调试信息
-
-#### handleEvent()
-
-处理音频播放中所有触发的事件，通过 suonoEvent 发布事件并回调当前实例
-
-#### handleLoadError({ code }: MediaError)
-
-进行错误处理
 
 ## Develop
 
@@ -329,18 +193,9 @@ var suono = new Suono({
   "esm": "tsc --module esnext && cpy dist/index.js dist --rename index.esm.js",
   "cjs": "tsc --module commonjs",
   "build": "npm run esm && npm run cjs",
-  "test": "ava",
   "dev": "npm run build --watch",
-  "lint": "xo --fix"
 }
 ```
-
-## Test[TODO]
-
-使用 `ava.js` 作为测试工具库，测试用例待完善。
-- 自动化测试用例为 `test/test.js`
-- 手动测试用例为 `test/index.html`
-
 ## License
 
 MIT
@@ -349,8 +204,6 @@ MIT
 [size]: https://badge-size.herokuapp.com/hawtim/suono/master/dist/index.js?compression=gzip&style=flat-square
 [size-url]: https://github.com/hawtim/suono/master/dist/
 [typescript]: https://img.shields.io/badge/-TypeScript-007ACC?style=flat-square&logo=typescript
-[xo-url]: https://github.com/xojs/xo
-[xo]: https://img.shields.io/badge/code_style-XO-5ed9c7.svg
 [licenses-url]: https://app.fossa.com/projects/git%2Bgithub.com%2Fhawtim%2Fsuono?ref=badge_shield
 [licenses]: https://app.fossa.com/api/projects/git%2Bgithub.com%2Fhawtim%2Fsuono.svg?type=shield
 [npm-img]: https://img.shields.io/npm/v/suono.svg

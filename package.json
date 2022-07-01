@@ -1,16 +1,13 @@
 {
   "name": "suono",
-  "version": "0.1.5",
-  "description": "A audio library for applications.",
+  "version": "1.0.0",
+  "description": "A simple audio library for applications.",
   "main": "dist/index.js",
   "types": "types/index.d.ts",
   "keywords": [
     "audio",
     "player",
-    "typescript",
     "media",
-    "application",
-    "spa",
     "HTMLAudioElement",
     "HTMLMediaElement"
   ],
@@ -19,9 +16,8 @@
     "esm": "tsc --module esnext && cpy dist/index.js dist --rename index.esm.js",
     "cjs": "tsc --module commonjs",
     "build": "npm run esm && npm run cjs",
-    "test": "ava",
     "dev": "npm run build --watch",
-    "lint": "xo --fix"
+    "lint:fix": "eslint --fix"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
@@ -36,14 +32,13 @@
     "url": "https://github.com/hawtim/suono/issues"
   },
   "engines": {
-    "node": ">=10.16.0"
+    "node": "^12.22.0 || ^14.17.0 || >=16.0.0"
   },
   "homepage": "https://github.com/hawtim/suono#readme",
   "dependencies": {
-    "ava": "^3.13.0",
     "cpy-cli": "^3.1.1",
     "del-cli": "^3.0.1",
-    "jsdom": "^16.4.0",
-    "xo": "^0.33.1"
+    "eslint": "^8.18.0",
+    "jsdom": "^16.4.0"
   }
 }
